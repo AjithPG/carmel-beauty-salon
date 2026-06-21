@@ -487,96 +487,6 @@
       padding: 2rem; color: var(--muted); font-size: 0.82rem;
     }
 
-    /* ── ADMIN LOCK ── */
-    /* The toolbar is hidden by default; JS shows it only after PIN is verified */
-    .admin-controls { display: none; }
-
-    /* Gallery section wrapper needs relative positioning for the flower */
-    .gallery { position: relative; }
-
-    /* Discreet flower icon — blends into the section, bottom-right corner */
-    .admin-flower {
-      position: absolute;
-      bottom: 1.6rem; right: 2rem;
-      font-size: 1.3rem;
-      opacity: 0.18;
-      cursor: pointer;
-      border: none; background: transparent; padding: 0.3rem;
-      transition: opacity 0.35s, transform 0.35s;
-      line-height: 1;
-      user-select: none;
-      z-index: 10;
-    }
-    .admin-flower:hover { opacity: 0.55; transform: rotate(20deg) scale(1.15); }
-    .admin-flower.active {
-      opacity: 0.75;
-      filter: drop-shadow(0 0 6px rgba(179,157,219,0.7));
-      animation: petalSpin 6s linear infinite;
-    }
-    @keyframes petalSpin {
-      0%   { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* PIN modal overlay */
-    .pin-overlay {
-      display: none; position: fixed; inset: 0; z-index: 500;
-      background: rgba(20,0,40,0.75); backdrop-filter: blur(6px);
-      align-items: center; justify-content: center;
-    }
-    .pin-overlay.open { display: flex; }
-    .pin-modal {
-      background: var(--white); border-radius: 8px;
-      padding: 2.5rem 2rem; width: min(360px, 90vw);
-      box-shadow: 0 24px 80px rgba(74,20,140,0.35);
-      text-align: center; position: relative;
-    }
-    .pin-modal-logo {
-      width: 70px; height: 70px; border-radius: 50%; object-fit: contain;
-      margin-bottom: 1rem; border: 2px solid rgba(201,160,48,0.4);
-    }
-    .pin-modal h3 {
-      font-family: 'Tangerine', cursive; font-weight: 700;
-      font-size: 2rem; color: var(--purple-deep); margin-bottom: 0.25rem;
-    }
-    .pin-modal p {
-      font-size: 0.78rem; color: var(--muted); margin-bottom: 1.5rem;
-      letter-spacing: 0.05em;
-    }
-    .pin-dots {
-      display: flex; justify-content: center; gap: 0.6rem; margin-bottom: 1.5rem;
-    }
-    .pin-dot {
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid var(--lavender);
-      background: transparent; transition: all 0.2s;
-    }
-    .pin-dot.filled { background: var(--lavender-mid); border-color: var(--lavender-mid); }
-    .pin-keypad {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem;
-      margin-bottom: 1rem;
-    }
-    .pin-key {
-      padding: 0.85rem; font-size: 1.1rem; font-weight: 500;
-      background: var(--lavender-lt); border: 1px solid rgba(179,157,219,0.3);
-      color: var(--purple-deep); border-radius: 4px; cursor: pointer;
-      transition: all 0.15s; user-select: none;
-    }
-    .pin-key:hover { background: var(--lavender); color: white; }
-    .pin-key:active { transform: scale(0.94); }
-    .pin-key.del { background: rgba(192,57,43,0.08); color: #c0392b; border-color: rgba(192,57,43,0.2); }
-    .pin-key.del:hover { background: rgba(192,57,43,0.18); }
-    .pin-error {
-      font-size: 0.75rem; color: #c0392b; min-height: 1.2rem;
-      margin-bottom: 0.5rem; letter-spacing: 0.05em;
-    }
-    .pin-cancel {
-      font-size: 0.68rem; color: var(--muted); cursor: pointer;
-      background: none; border: none; letter-spacing: 0.1em;
-      text-transform: uppercase; text-decoration: underline; margin-top: 0.3rem;
-    }
-    .pin-cancel:hover { color: var(--purple-deep); }
-
     /* Lightbox */
     .lightbox {
       display: none; position: fixed; inset: 0; z-index: 999;
@@ -1418,6 +1328,7 @@
       document.getElementById('lightbox').classList.remove('open');
     }
   }
+  document.addEventListener("DOMContentLoaded", fetchImagesFromGitHub);
 </script>
 </body>
 </html>
