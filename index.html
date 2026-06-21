@@ -1209,56 +1209,48 @@
     window.location.href = `mailto:carmel.beautysaloon@gmail.com?subject=${subject}&body=${body}`;
   }
 
-  // ── GITHUB CONFIGURATION ──
-  // Replace these with your actual GitHub Details
+  // ── GITHUB CONFIGURATION ENGINE ──
   const GITHUB_USERNAME = "jayasuryajmenon"; 
   const GITHUB_REPO     = "carmel-beauty-salon";
-  const GITHUB_FOLDER   = "gallery-pics"; // The folder where your salon images live
+  const GITHUB_FOLDER   = "gallery-pics"; 
 
   let galleryImages = [];
 
-  // Initialize and pull images on load
-  document.addEventListener("DOMContentLoaded", () => {
-    fetchImagesFromGitHub();
-  });
-
   async function fetchImagesFromGitHub() {
+    // FIX: Targets 'galleryGrid' to match your HTML container ID exactly
+    const gridDisplay = document.getElementById('galleryGrid');
+    
     const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FOLDER}`;
-    const gridDisplay = document.getElementById('galleryGridDisplay');
     
     try {
       const response = await fetch(apiUrl);
-      if (!response.ok) throw new Error("Failed to load repository contents");
+      if (!response.ok) throw new Error('Network response failure.');
+      const data = await response.json();
+
+      const targetExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'];
       
-      const files = await response.json();
-      
-      // Filter out only valid image assets
-      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'];
-      const imageFiles = files.filter(file => {
+      const imageFiles = data.filter(file => {
         const ext = file.name.split('.').pop().toLowerCase();
-        return file.type === "file" && imageExtensions.includes(ext);
+        return file.type === 'file' && targetExtensions.includes(ext);
       });
 
-      // Map assets to match the exact template schema
       galleryImages = imageFiles.map(file => {
-        // Clean up the file name to use as a readable caption
-        let cleanLabel = file.name
-          .replace(/\.[^/.]+$/, "")          // Remove extension
-          .replace(/[-_]/g, " ");            // Convert dashes/underscores to spaces
+        let titleClean = file.name.split('.').slice(0, -1).join('.');
+        titleClean = titleClean.replace(/[-_]/g, ' ');
         
         return {
-          // Fallback to jsDelivr CDN if raw.githubusercontent has slight delay
+          // Uses @main since your repository uses the main branch setup
           src: `https://cdn.jsdelivr.net/gh/${GITHUB_USERNAME}/${GITHUB_REPO}@main/${GITHUB_FOLDER}/${file.name}`,
-          label: cleanLabel
+          label: titleClean
         };
       });
 
       renderGitHubGallery();
-
+      
     } catch (error) {
-      console.error("Gallery Error:", error);
+      console.error('Error fetching gallery imagery:', error);
       gridDisplay.innerHTML = `
-        <div class="gallery-empty-msg">
+        <div class="gallery-empty-msg" style="grid-column:1/-1; text-align:center;">
           <i class="fa-solid fa-triangle-exclamation" style="font-size:1.5rem; margin-bottom:0.5rem; color:var(--gold);"></i>
           <p>Unable to connect to image server. Please refresh or check back later.</p>
         </div>`;
@@ -1266,7 +1258,8 @@
   }
 
   function renderGitHubGallery() {
-    const gridDisplay = document.getElementById('galleryGridDisplay');
+    // FIX: Targets 'galleryGrid' here as well
+    const gridDisplay = document.getElementById('galleryGrid');
     
     if (galleryImages.length === 0) {
       gridDisplay.innerHTML = '<div class="gallery-empty-msg">No showcase items found in the repository folder.</div>';
@@ -1295,6 +1288,9 @@
       document.getElementById('lightbox').classList.remove('open');
     }
   }
+
+  // ── START THE DISCOVERY ENGINE ──
+  // Tells the browser to fire up the script as soon as the page is finished building
   document.addEventListener("DOMContentLoaded", fetchImagesFromGitHub);
 </script>
 </body>
