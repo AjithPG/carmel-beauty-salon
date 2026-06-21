@@ -1039,8 +1039,6 @@
 
   <!-- GALLERY -->
   <section class="gallery" id="gallery">
-    <!-- Discreet flower: barely visible decoration, only you know to click it -->
-    <button class="admin-flower" id="adminFlower" onclick="flowerClick()" title="">🌸</button>
 
     <div class="section-header">
       <div class="section-tag">Our Work</div>
@@ -1049,37 +1047,6 @@
 
       <div class="gallery-grid-display" id="galleryGrid">
         <div class="gallery-empty-msg">No photos yet — check back soon!</div>
-      </div>
-    </div>
-
-    <!-- PIN Modal -->
-    <div class="pin-overlay" id="pinOverlay">
-      <div class="pin-modal">
-        <img class="pin-modal-logo" src="carmel-logo.jpg" alt="Carmel Beauty Salon" onerror="this.style.display='none'">
-        <h3>Admin Access</h3>
-        <p>Enter your 4-digit PIN to manage the gallery</p>
-        <div class="pin-dots" id="pinDots">
-          <div class="pin-dot" id="dot0"></div>
-          <div class="pin-dot" id="dot1"></div>
-          <div class="pin-dot" id="dot2"></div>
-          <div class="pin-dot" id="dot3"></div>
-        </div>
-        <div class="pin-error" id="pinError"></div>
-        <div class="pin-keypad">
-          <button class="pin-key" onclick="pinPress('1')">1</button>
-          <button class="pin-key" onclick="pinPress('2')">2</button>
-          <button class="pin-key" onclick="pinPress('3')">3</button>
-          <button class="pin-key" onclick="pinPress('4')">4</button>
-          <button class="pin-key" onclick="pinPress('5')">5</button>
-          <button class="pin-key" onclick="pinPress('6')">6</button>
-          <button class="pin-key" onclick="pinPress('7')">7</button>
-          <button class="pin-key" onclick="pinPress('8')">8</button>
-          <button class="pin-key" onclick="pinPress('9')">9</button>
-          <button class="pin-key del" onclick="pinDel()">⌫</button>
-          <button class="pin-key" onclick="pinPress('0')">0</button>
-          <button class="pin-key del" onclick="pinClear()">✕</button>
-        </div>
-        <button class="pin-cancel" onclick="closePinModal()">Cancel</button>
       </div>
     </div>
 
