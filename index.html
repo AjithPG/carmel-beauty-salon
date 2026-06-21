@@ -1137,28 +1137,6 @@
       <h2 class="section-h2">A Glimpse of <em>Transformations</em></h2>
     </div>
 
-    <div class="gallery-manager">
-
-      <!-- Admin-only controls: hidden until PIN verified -->
-      <div class="admin-controls" id="adminControls">
-        <div style="padding:0.75rem 1.5rem; background:linear-gradient(90deg,rgba(237,231,246,0.6),rgba(245,240,232,0.6)); border-bottom:1px solid rgba(179,157,219,0.2); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.6rem;">
-          <span style="font-size:0.72rem;color:var(--lavender-mid);letter-spacing:0.1em;">✦ Admin Mode — upload and manage gallery photos</span>
-          <div class="toolbar-actions">
-            <label class="upload-btn-label" for="galleryUpload">＋ Add Photos</label>
-            <input type="file" id="galleryUpload" multiple accept="image/*">
-            <button class="clear-btn" onclick="clearGallery()">Clear All</button>
-          </div>
-        </div>
-        <!-- Drop zone shown when gallery is empty -->
-        <div class="gallery-upload-zone" id="dropZone" onclick="document.getElementById('galleryUpload').click()">
-          <div class="upload-zone-icon">🌸</div>
-          <p class="upload-zone-text">
-            <strong>Click here or drag &amp; drop photos</strong> to add them to the gallery.<br>
-            Supports JPG, PNG, WEBP. Add as many as you like!
-          </p>
-        </div>
-      </div>
-
       <div class="gallery-grid-display" id="galleryGrid">
         <div class="gallery-empty-msg">No photos yet — check back soon!</div>
       </div>
@@ -1354,189 +1332,90 @@
     window.location.href = `mailto:carmel.beautysaloon@gmail.com?subject=${subject}&body=${body}`;
   }
 
-  // ─────────────────────────────────────────────
-  // ADMIN PIN — change this 4-digit code to your
-  // own secret PIN before publishing the website!
-  // ─────────────────────────────────────────────
-  const ADMIN_PIN = '0155';   // ← CHANGE THIS
+  // ── GITHUB CONFIGURATION ──
+  // Replace these with your actual GitHub Details
+  const GITHUB_USERNAME = "YOUR_GITHUB_USERNAME"; 
+  const GITHUB_REPO     = "YOUR_REPOSITORY_NAME";
+  const GITHUB_FOLDER   = "gallery-pics"; // The folder where your salon images live
 
-  let isAdmin = false;
-  let pinEntry = '';
+  let galleryImages = [];
 
-  // ── PIN Modal ──
-  function openPinModal() {
-    pinEntry = '';
-    updatePinDots();
-    document.getElementById('pinError').textContent = '';
-    document.getElementById('pinOverlay').classList.add('open');
-  }
-  function closePinModal() {
-    pinEntry = '';
-    updatePinDots();
-    document.getElementById('pinError').textContent = '';
-    document.getElementById('pinOverlay').classList.remove('open');
-  }
-  function pinPress(digit) {
-    if (pinEntry.length >= 4) return;
-    pinEntry += digit;
-    updatePinDots();
-    if (pinEntry.length === 4) {
-      setTimeout(checkPin, 180); // brief pause so last dot fills visually
-    }
-  }
-  function pinDel() {
-    pinEntry = pinEntry.slice(0, -1);
-    updatePinDots();
-    document.getElementById('pinError').textContent = '';
-  }
-  function pinClear() {
-    pinEntry = '';
-    updatePinDots();
-    document.getElementById('pinError').textContent = '';
-  }
-  function updatePinDots() {
-    for (let i = 0; i < 4; i++) {
-      document.getElementById('dot' + i).classList.toggle('filled', i < pinEntry.length);
-    }
-  }
-  function checkPin() {
-    if (pinEntry === ADMIN_PIN) {
-      isAdmin = true;
-      closePinModal();
-      showAdminControls();
-    } else {
-      document.getElementById('pinError').textContent = 'Incorrect PIN. Please try again.';
-      // shake animation
-      const modal = document.querySelector('.pin-modal');
-      modal.style.animation = 'none';
-      modal.offsetHeight; // reflow
-      modal.style.animation = 'shake 0.4s ease';
-      pinEntry = '';
-      updatePinDots();
+  // Initialize and pull images on load
+  document.addEventListener("DOMContentLoaded", () => {
+    fetchImagesFromGitHub();
+  });
+
+  async function fetchImagesFromGitHub() {
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FOLDER}`;
+    const gridDisplay = document.getElementById('galleryGridDisplay');
+    
+    try {
+      const response = await fetch(apiUrl);
+      if (!response.ok) throw new Error("Failed to load repository contents");
+      
+      const files = await response.json();
+      
+      // Filter out only valid image assets
+      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'];
+      const imageFiles = files.filter(file => {
+        const ext = file.name.split('.').pop().toLowerCase();
+        return file.type === "file" && imageExtensions.includes(ext);
+      });
+
+      // Map assets to match the exact template schema
+      galleryImages = imageFiles.map(file => {
+        // Clean up the file name to use as a readable caption
+        let cleanLabel = file.name
+          .replace(/\.[^/.]+$/, "")          // Remove extension
+          .replace(/[-_]/g, " ");            // Convert dashes/underscores to spaces
+        
+        return {
+          // Fallback to jsDelivr CDN if raw.githubusercontent has slight delay
+          src: `https://cdn.jsdelivr.net/gh/${GITHUB_USERNAME}/${GITHUB_REPO}@main/${GITHUB_FOLDER}/${file.name}`,
+          label: cleanLabel
+        };
+      });
+
+      renderGitHubGallery();
+
+    } catch (error) {
+      console.error("Gallery Error:", error);
+      gridDisplay.innerHTML = `
+        <div class="gallery-empty-msg">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size:1.5rem; margin-bottom:0.5rem; color:var(--gold);"></i>
+          <p>Unable to connect to image server. Please refresh or check back later.</p>
+        </div>`;
     }
   }
 
-  function showAdminControls() {
-    document.getElementById('adminControls').style.display = 'block';
-    document.getElementById('adminFlower').classList.add('active');
-    document.getElementById('adminFlower').title = 'Admin active — click to log out';
-    renderGallery();
-  }
-  function adminLogout() {
-    isAdmin = false;
-    document.getElementById('adminControls').style.display = 'none';
-    document.getElementById('adminFlower').classList.remove('active');
-    document.getElementById('adminFlower').title = '';
-    renderGallery();
-  }
-
-  // Flower click: open PIN if not admin, log out if already admin
-  function flowerClick() {
-    if (isAdmin) {
-      adminLogout();
-    } else {
-      openPinModal();
-    }
-  }
-
-  // Shake keyframe
-  const shakeStyle = document.createElement('style');
-  shakeStyle.textContent = `@keyframes shake {
-    0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)}
-    40%{transform:translateX(8px)} 60%{transform:translateX(-5px)}
-    80%{transform:translateX(5px)} }`;
-  document.head.appendChild(shakeStyle);
-
-  // ── Gallery ──
-  let galleryImages = []; // {src, label}
-
-  function renderGallery() {
-    const grid = document.getElementById('galleryGrid');
-    const dropZone = document.getElementById('dropZone');
-    grid.innerHTML = '';
+  function renderGitHubGallery() {
+    const gridDisplay = document.getElementById('galleryGridDisplay');
+    
     if (galleryImages.length === 0) {
-      if (isAdmin && dropZone) dropZone.style.display = 'block';
-      grid.appendChild(Object.assign(document.createElement('div'), {
-        className: 'gallery-empty-msg',
-        textContent: isAdmin ? 'No photos yet — upload some above!' : 'No photos yet — check back soon!'
-      }));
+      gridDisplay.innerHTML = '<div class="gallery-empty-msg">No showcase items found in the repository folder.</div>';
       return;
     }
-    if (dropZone) dropZone.style.display = 'none';
-    galleryImages.forEach((img, i) => {
-      const thumb = document.createElement('div');
-      thumb.className = 'gallery-thumb';
-      // Delete button shown only to admin
-      const adminBtn = isAdmin
-        ? `<button class="thumb-action" onclick="removeImage(${i},event)" title="Remove">🗑</button>`
-        : '';
-      thumb.innerHTML = `
-        <img src="${img.src}" alt="${img.label}">
+
+    gridDisplay.innerHTML = galleryImages.map((img, i) => `
+      <div class="gallery-thumb" onclick="openLightbox(${i})">
+        <img src="${img.src}" alt="${img.label}" loading="lazy">
         <div class="gallery-thumb-overlay">
-          <button class="thumb-action" onclick="openLightbox(${i},event)" title="View">🔍</button>
-          ${adminBtn}
+          <button class="thumb-action"><i class="fa-solid fa-expand"></i></button>
         </div>
-        ${isAdmin ? `<input class="thumb-label-input" type="text" value="${img.label}" placeholder="Add label…"
-          onchange="galleryImages[${i}].label=this.value" onclick="event.stopPropagation()">` : ''}
-      `;
-      grid.appendChild(thumb);
-    });
+        <div class="thumb-label-input" style="display:block !important; pointer-events:none;">${img.label}</div>
+      </div>
+    `).join('');
   }
 
-  function removeImage(i, e) {
-    if (!isAdmin) return;
-    e.stopPropagation();
-    galleryImages.splice(i, 1);
-    renderGallery();
+  function openLightbox(i) {
+    document.getElementById('lightboxImg').src = galleryImages[i].src;
+    document.getElementById('lightboxCaption').textContent = galleryImages[i].label;
+    document.getElementById('lightbox').classList.add('open');
   }
 
-  document.getElementById('galleryUpload').addEventListener('change', function() {
-    if (!isAdmin) return;
-    const files = Array.from(this.files);
-    let loaded = 0;
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        galleryImages.push({src: ev.target.result, label: file.name.replace(/\.[^.]+$/, '')});
-        loaded++;
-        if (loaded === files.length) renderGallery();
-      };
-      reader.readAsDataURL(file);
-    });
-    this.value = '';
-  });
-
-  // Drag & drop (admin only)
-  document.querySelector('.gallery-manager').addEventListener('dragover', e => {
-    if (!isAdmin) return;
-    e.preventDefault();
-    document.getElementById('dropZone').classList.add('drag-over');
-  });
-  document.querySelector('.gallery-manager').addEventListener('dragleave', () => {
-    document.getElementById('dropZone').classList.remove('drag-over');
-  });
-  document.querySelector('.gallery-manager').addEventListener('drop', e => {
-    if (!isAdmin) return;
-    e.preventDefault();
-    document.getElementById('dropZone').classList.remove('drag-over');
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-    let loaded = 0;
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        galleryImages.push({src: ev.target.result, label: file.name.replace(/\.[^.]+$/, '')});
-        loaded++;
-        if (loaded === files.length) renderGallery();
-      };
-      reader.readAsDataURL(file);
-    });
-  });
-
-  function clearGallery() {
-    if (!isAdmin) return;
-    if (galleryImages.length && confirm('Remove all photos from the gallery?')) {
-      galleryImages = [];
-      renderGallery();
+  function closeLightbox(e) {
+    if (!e || e.target === document.getElementById('lightbox') || e.target.closest('.lightbox-close')) {
+      document.getElementById('lightbox').classList.remove('open');
     }
   }
 
